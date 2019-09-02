@@ -1,0 +1,19 @@
+package uk.gov.records;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class InvalidRecordException extends Exception {
+	List<String> fields = new ArrayList<>();
+	
+	public void addInvalidField(String s) {
+		fields.add(s);
+	}
+
+	@Override
+	public String getMessage() {
+		// TODO Auto-generated method stub
+		return "Invalid fields supplied: " + fields;
+	}
+	
+}
