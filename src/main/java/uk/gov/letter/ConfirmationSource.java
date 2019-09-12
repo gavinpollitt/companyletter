@@ -2,6 +2,11 @@ package uk.gov.letter;
 
 import uk.gov.records.Record1;
 
+/**
+ * LetterSource implementation for the Confirmation Letter.
+ * @author regen
+ *
+ */
 public class ConfirmationSource extends LetterSource<Record1> {
 
 	private final static String TEMPLATE_LOC = "file:///home/regen/Documents/letters/Confirmation.txt";

@@ -18,28 +18,51 @@ import java.util.stream.Collectors;
 import uk.gov.records.Record;
 import uk.gov.records.RecordUtils.Field;
 
+/**
+ * Superclass for the different letter types providing core fnctionality and expectations of the 
+ * subclasses
+ * @author regen
+ *
+ * @param <T> The specific record type that the source is associated with
+ */
 public abstract class LetterSource<T extends Record> {
+	//The definition of a field placeholder
 	private final static Pattern FIELD_REG_EX = Pattern.compile("(.*?)(<<.*?>>)");
 	
 	private List<T> letterSet = new ArrayList<>();
 	private List<String> templateLines;
 
+	// The location of the specific template required
 	protected abstract String getTemplateURI();
 
+	// The location of the output directory where the generated letter will be deposited
 	protected abstract String getOutputDir();
 
+	// The destination filename
 	protected abstract String getFilename(T letterRecord);
 	
+	/**
+	 * Load the template into memory
+	 * @throws Exception
+	 */
 	protected void loadTemplate() throws Exception {
 		URI uri = URI.create(getTemplateURI());
 		Path p = Paths.get(uri);
 		templateLines = Files.lines(p).collect(Collectors.toList());
 	}
 
+	/**
+	 * 
+	 * @param record A candidate record for letter production
+	 */
 	public void addSource(T record) {
 		letterSet.add(record);
 	}
 
+	/**
+	 * Using the provided records, produce the associated letters
+	 * @throws Exception
+	 */
 	public void generateLetters() throws Exception {
 		if (this.templateLines == null) {
 			this.loadTemplate();
@@ -61,6 +84,11 @@ public abstract class LetterSource<T extends Record> {
 		return this;
 	}
 	
+	/**
+	 * Grunt work for performing the field matching and replacement
+	 * @param r The record used as source for field replacement.
+	 * @return The 'in-memory' lines of replaced lines
+	 */
 	private List<String> injectValues(Record r) {
 		List<String> outLines = new ArrayList<String>();
 
@@ -121,6 +149,11 @@ public abstract class LetterSource<T extends Record> {
 		return outLines;
 	}
 
+	/**
+	 * Identify any system tags in the form <<tag.item>>
+	 * @param tag The full stringy tag
+	 * @return The CompositeTag object containing the detail.
+	 */
 	private static CompositeTag identifyPreTag(final String tag) {
 
 		CompositeTag ct = null;
@@ -133,6 +166,13 @@ public abstract class LetterSource<T extends Record> {
 		return ct;
 	}
 
+	/**
+	 * 
+	 * @param line The line from the templated
+	 * @param repFields The candidate fields for replacement
+	 * @param repVals The candidate values for replacement
+	 * @return
+	 */
 	private static String constructLine(String line, List<String> repFields, Map<String, Field> repVals) {
 		for (String s : repFields) {
 			Field curField = null;
@@ -157,6 +197,11 @@ public abstract class LetterSource<T extends Record> {
 
 	}
 
+	/**
+	 * Holder class for fields containing a 'command'
+	 * @author regen
+	 *
+	 */
 	private static class CompositeTag {
 		private String command;
 		private String data;

@@ -3,6 +3,11 @@ package uk.gov.records;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Application specific error message
+ * @author regen
+ *
+ */
 public class InvalidRecordException extends Exception {
 	List<String> fields = new ArrayList<>();
 	

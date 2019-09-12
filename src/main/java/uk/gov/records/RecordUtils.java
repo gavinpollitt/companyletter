@@ -2,8 +2,18 @@ package uk.gov.records;
 
 import java.util.regex.Pattern;
 
+/**
+ * Holder of utility classes for Record manipulation
+ * @author regen
+ *
+ */
 public class RecordUtils {
 	
+	/**
+	 * A Holder for the field value and the associated specification
+	 * @author regen
+	 *
+	 */
 	public static class Field {
 		private FieldSpec fieldSpec;
 		private String value;
@@ -23,6 +33,11 @@ public class RecordUtils {
 
 	}
 	
+	/**
+	 * A holder for the field name and its associated regular expression validation
+	 * @author regen
+	 *
+	 */
 	public static class FieldSpec {
 		private String name;
 		private Pattern regex;

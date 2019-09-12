@@ -11,6 +11,11 @@ import uk.gov.letter.ConfirmationSource;
 import uk.gov.records.RecordUtils.Field;
 import uk.gov.records.RecordUtils.FieldSpec;
 
+/**
+ * Class holder for Record type 1 and its 1A children
+ * @author regen
+ *
+ */
 public class Record1 extends Record {
 	private final static Pattern COMP_REG = Pattern.compile(".{1,20}");
 	private final static Pattern ADD_REG = Pattern.compile("[\\w -]{1,15}");
@@ -49,6 +54,9 @@ public class Record1 extends Record {
 		return children;
 	}
 
+	/**
+	 * Perform any inter-record validation once a 'group' has been read
+	 */
 	public void postValidate() throws Exception {
 		if (this.contacts.size() == 0) {
 			throw new Exception("At least one contact record must be supplied for Record Type 1");
@@ -60,6 +68,11 @@ public class Record1 extends Record {
 		}
 	}
 
+	/**
+	 * Class holder for record type 1A
+	 * @author regen
+	 *
+	 */
 	public static class Record1A extends Record {
 		private final static Pattern CNAME_REG = Pattern.compile(".{1,20}");
 		private final static Pattern CNUM_REG = Pattern.compile("[\\d ]{1,14}");

@@ -10,6 +10,14 @@ import java.util.stream.Collectors;
 import uk.gov.records.Record1;
 import uk.gov.records.Record1.Record1A;
 
+/**
+ * 
+ * @author regen
+ * 
+ * 'Front-Office' class to poll the input directory for the required COMPANY files and the possible termination file.
+ * Processed files will be relocated to either the archive or error directory depending on the success of the processing
+ *
+ */
 public class FileProcessor {
 	private final static String INPUT_DIR = "file:///home/regen/temp/input";
 	private final static String ARCHIVE_DIR = "file:///home/regen/temp/archive";
@@ -20,6 +28,11 @@ public class FileProcessor {
 	private final Path archivePath;
 	private final Path errorPath;
 
+	/**
+	 * Start the ball rolling
+	 * @param args
+	 * @throws Exception
+	 */
 	public static void main(String[] args) throws Exception {
 		FileProcessor fp = new FileProcessor();
 
@@ -37,6 +50,10 @@ public class FileProcessor {
 		}
 	}
 
+	/**
+	 * Control the polling of the input directory until a quit event is discovered
+	 * @throws Exception
+	 */
 	private void process() throws Exception {
 		while (!this.quitFilePresent()) {
 			if (!companyFilePresent()) {
@@ -57,11 +74,17 @@ public class FileProcessor {
 		return Files.list(this.inputPath).anyMatch(p -> p.endsWith(QUIT_FILE));
 	}
 
+	/**
+	 * This method will iterate through any COMPANY files and open a dialogue with the SourceManager to 
+	 * process each file in turn, validate and generate any letters if the file is clean
+	 * @throws Exception
+	 */
 	private void processFiles() throws Exception {
 		List<Path> files = Files.list(this.inputPath).collect(Collectors.toList());
 
 		for (Path p : files) {
 			List<String> file = Files.readAllLines(p);
+			//Remove blank lines
 			file = file.stream().filter(l -> !(l.trim().length()==0)).collect(Collectors.toList());
 
 			try {
@@ -76,6 +99,11 @@ public class FileProcessor {
 		}
 	}
 
+	/**
+	 * Process a single file by validating its structure and building the Record objects for letter generation.
+	 * @param lines List of lines contained in the file
+	 * @throws Exception
+	 */
 	private void processSingleFile(List<String> lines) throws Exception {
 		boolean oneActive = false, threeActive = false;
 
@@ -122,11 +150,19 @@ public class FileProcessor {
 		return line.substring(0, line.indexOf("|"));
 	}
 
+	/**
+	 * Remove all instances of the quit file from the input
+	 * @throws Exception
+	 */
+	
 	private void purge() throws Exception {
 		Files.list(this.inputPath).filter(p -> p.endsWith(QUIT_FILE)).forEach(FileProcessor::df);
 	}
 
-	// Used to avoid Java not being able to handle exception in Stream
+	/**
+	 * Used to avoid Java not being able to handle exception in Stream
+	 * @param p The file path to delete
+	 */
 	private static void df(Path p) {
 		try {
 			Files.delete(p);
