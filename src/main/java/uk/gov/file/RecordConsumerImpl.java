@@ -35,6 +35,8 @@ public class RecordConsumerImpl implements RecordConsumer {
 		if (this.problems.size() > 0) {
 			this.problems.stream().forEach(System.out::println);
 			success = false;
+			this.problems.clear();
+			this.records.clear();
 		}
 		else {
 			this.records.stream().forEach(SourceManager.getInstance()::addRecord);
@@ -48,6 +50,8 @@ public class RecordConsumerImpl implements RecordConsumer {
 			}
 			finally {
 				SourceManager.getInstance().reset();
+				this.problems.clear();
+				this.records.clear();
 			}
 		}
 		

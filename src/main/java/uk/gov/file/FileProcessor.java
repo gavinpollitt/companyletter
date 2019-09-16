@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import uk.gov.letter.ConfirmationSource;
+import uk.gov.letter.DiscountSource;
+import uk.gov.letter.InvoiceSource;
 import uk.gov.letter.LetterSource;
 import uk.gov.records.Record;
 
@@ -44,11 +46,15 @@ public class FileProcessor {
 	public static void main(String[] args) throws Exception {
 		List<LetterSource<? extends Record>> sources = new ArrayList<>();
 		sources.add(ConfirmationSource.getInstance());
+		sources.add(DiscountSource.getInstance());
+		sources.add(InvoiceSource.getInstance());
 		SourceManager.getInstance().addLetterSources(sources);
 		
 		FileProcessor fp = new FileProcessor(
 				Arrays.asList(new LineListener[] { 
-						new ConfirmationListener(RecordConsumerImpl.getInstance())
+						new ConfirmationListener(RecordConsumerImpl.getInstance()),
+						new DiscountListener(RecordConsumerImpl.getInstance()),
+						new InvoiceListener(RecordConsumerImpl.getInstance())
 		}));
 
 		
@@ -133,6 +139,9 @@ public class FileProcessor {
 			this.lineListeners.stream().forEach(ll -> ll.acceptCandidate(lno, line));
 			lineNumber++;
 		}
+		//Send an EOF event in case any post-processing is required
+		this.lineListeners.stream().forEach(ll -> ll.acceptCandidate(-1, "EOF|"));
+		
 		return RecordConsumerImpl.getInstance().processResults();
 	}
 

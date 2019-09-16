@@ -21,7 +21,6 @@ public class SourceManager {
 	}
 
 	private SourceManager() {
-		this.reset();
 	}
 
 	public void addLetterSources(List <LetterSource<? extends Record>> sources) {

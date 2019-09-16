@@ -1,11 +1,14 @@
 package uk.gov.file;
 
 import uk.gov.records.Record1;
+import uk.gov.records.Record3;
 import uk.gov.records.Record1.Record1A;
+import uk.gov.records.Record3.Record3A;
 
 public class ConfirmationListener implements LineListener {
 
 	private boolean confActive = false;
+	private boolean childActive = false;
 	private Record1 conf = null;
 	private RecordConsumer recordListener;
 
@@ -21,14 +24,22 @@ public class ConfirmationListener implements LineListener {
 
 		try {
 			if (rec.equals("1")) {
-				//Hit another record one
+				//Hit another record three
 				if (this.confActive) {
-					this.recordListener.acceptResult(this.conf);
+					if (this.childActive) {
+						this.recordListener.acceptResult(this.conf);
+						this.childActive = false;
+					}
+					else {
+						this.confActive = false;
+						throw new Exception("1 must be followed by, at lease, 1 1A");
+					}
 				}
 				this.conf = new Record1(recordLine);
 				this.confActive = true;
 			} else if (rec.equals("1A")) {
 				if (this.confActive) {
+					this.childActive = true;
 					Record1A cont = new Record1.Record1A(recordLine);
 					this.conf.addContact(cont);
 				} else {
@@ -37,6 +48,7 @@ public class ConfirmationListener implements LineListener {
 			} else {
 				if (this.confActive) {
 					this.confActive = false;
+					this.childActive = false;
 					this.conf.postValidate();
 					this.recordListener.acceptResult(this.conf);					
 					this.conf = null;

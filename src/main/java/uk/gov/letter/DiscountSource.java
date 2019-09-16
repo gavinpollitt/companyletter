@@ -2,27 +2,28 @@ package uk.gov.letter;
 
 import uk.gov.records.Record;
 import uk.gov.records.Record1;
+import uk.gov.records.Record2;
 
 /**
  * LetterSource implementation for the Confirmation Letter.
  * @author regen
  *
  */
-public class ConfirmationSource extends LetterSource<Record1> {
+public class DiscountSource extends LetterSource<Record2> {
 
-	private final static String TEMPLATE_LOC = "file:///home/regen/Documents/letters/Confirmation.txt";
+	private final static String TEMPLATE_LOC = "file:///home/regen/Documents/letters/Discount.txt";
 	private final static String OUTPUT_DIR = "file:///home/regen/temp/output";
 
-	private final static String OUTPUT_FN = "Confirmation";
+	private final static String OUTPUT_FN = "Discount";
 	
-	private final static ConfirmationSource source = new ConfirmationSource();
+	private final static DiscountSource source = new DiscountSource();
 	
 	
-	public static ConfirmationSource getInstance() {
+	public static DiscountSource getInstance() {
 		return source;
 	}
 	
-	private ConfirmationSource() {
+	private DiscountSource() {
 	}
 	
 	@Override
@@ -36,14 +37,14 @@ public class ConfirmationSource extends LetterSource<Record1> {
 	}
 
 	@Override
-	protected String getFilename(Record1 letterRecord) {
+	protected String getFilename(Record2 letterRecord) {
 		return OUTPUT_FN + "_" + letterRecord.getFields().get("companyName").getValue() + ".txt";
 	}
 
 	@Override
 	public void consumeRecord(Record r) {
-		if (r.getClass() == Record1.class) {
-			this.addSource(Record1.class.cast(r));
+		if (r.getClass() == Record2.class) {
+			this.addSource(Record2.class.cast(r));
 		}
 	}
 
