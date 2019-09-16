@@ -2,13 +2,11 @@ package uk.gov.records;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
 import uk.gov.letter.ConfirmationSource;
-import uk.gov.records.RecordUtils.Field;
 import uk.gov.records.RecordUtils.FieldSpec;
 
 /**
@@ -76,7 +74,6 @@ public class Record1 extends Record {
 	public static class Record1A extends Record {
 		private final static Pattern CNAME_REG = Pattern.compile(".{1,20}");
 		private final static Pattern CNUM_REG = Pattern.compile("[\\d ]{1,14}");
-		private Map<String,Field> fields;
 
 		public Record1A(final String line) throws Exception {
 			super(line);

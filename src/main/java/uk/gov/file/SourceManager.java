@@ -1,8 +1,9 @@
 package uk.gov.file;
 
-import uk.gov.letter.ConfirmationSource;
+import java.util.List;
+
+import uk.gov.letter.LetterSource;
 import uk.gov.records.Record;
-import uk.gov.records.Record1;
 
 /**
  * Simple utility class to hold, in memory, the successful records used to issue
@@ -11,7 +12,9 @@ import uk.gov.records.Record1;
  *
  */
 public class SourceManager {
+
 	private final static SourceManager sourceManager = new SourceManager();
+	private List <LetterSource<? extends Record>> sources;
 
 	public static SourceManager getInstance() {
 		return sourceManager;
@@ -21,15 +24,33 @@ public class SourceManager {
 		this.reset();
 	}
 
-	public void addRecord(Record1 r) {
-		ConfirmationSource.getInstance().addSource(r);
+	public void addLetterSources(List <LetterSource<? extends Record>> sources) {
+		this.sources = sources;
 	}
 
-	public void dumpSources() throws Exception {
-		ConfirmationSource.getInstance().generateLetters();
+	public void addRecord(Record r) {
+		this.sources.stream().forEach(ls -> ls.consumeRecord(r));
+	}
+
+	public void dumpSources() {
+		this.sources.stream().forEach(this::gl);
 	}
 	
 	public void reset() {
-		ConfirmationSource.getInstance().reset();
+		this.sources.stream().forEach(ls -> ls.reset());
+	}
+	
+	/**
+	 * Utilityu method to convert checked to unchecked exception due to lambda not catering
+	 * for Checked Exception
+	 * @param ls
+	 */
+	private void gl(final LetterSource<? extends Record> ls) {
+		try {
+			ls.generateLetters();
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 	}
 }

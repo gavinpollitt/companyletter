@@ -7,7 +7,6 @@ import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +40,8 @@ public abstract class LetterSource<T extends Record> {
 	// The destination filename
 	protected abstract String getFilename(T letterRecord);
 	
+	public abstract void consumeRecord(Record r);
+	
 	/**
 	 * Load the template into memory
 	 * @throws Exception
@@ -51,6 +52,7 @@ public abstract class LetterSource<T extends Record> {
 		templateLines = Files.lines(p).collect(Collectors.toList());
 	}
 
+	
 	/**
 	 * 
 	 * @param record A candidate record for letter production

@@ -1,5 +1,6 @@
 package uk.gov.letter;
 
+import uk.gov.records.Record;
 import uk.gov.records.Record1;
 
 /**
@@ -15,6 +16,7 @@ public class ConfirmationSource extends LetterSource<Record1> {
 	private final static String OUTPUT_FN = "Confirmation";
 	
 	private final static ConfirmationSource source = new ConfirmationSource();
+	
 	
 	public static ConfirmationSource getInstance() {
 		return source;
@@ -38,7 +40,11 @@ public class ConfirmationSource extends LetterSource<Record1> {
 		return OUTPUT_FN + "_" + letterRecord.getFields().get("companyName").getValue() + ".txt";
 	}
 
-
+	public void consumeRecord(Record r) {
+		if (r.getClass() == Record1.class) {
+			this.addSource(Record1.class.cast(r));
+		}
+	}
 
 }
 

@@ -9,6 +9,11 @@ import java.util.List;
  *
  */
 public class InvalidRecordException extends Exception {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
 	List<String> fields = new ArrayList<>();
 	
 	public void addInvalidField(String s) {
