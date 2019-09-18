@@ -10,52 +10,55 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import uk.gov.records.Record;
 import uk.gov.records.RecordUtils.Field;
 
 /**
- * Superclass for the different letter types providing core fnctionality and expectations of the 
- * subclasses
+ * Superclass for the different letter types providing core fnctionality and
+ * expectations of the subclasses
+ * 
  * @author regen
  *
- * @param <T> The specific record type that the source is associated with
+ * @param <T>
+ *            The specific record type that the source is associated with
  */
 public abstract class LetterSource<T extends Record> {
-	//The definition of a field placeholder
-	private final static Pattern FIELD_REG_EX = Pattern.compile("(.*?)(<<.*?>>)");
-	
+
 	private List<T> letterSet = new ArrayList<>();
-	private List<String> templateLines;
+
+	private Template template;
 
 	// The location of the specific template required
 	protected abstract String getTemplateURI();
 
-	// The location of the output directory where the generated letter will be deposited
+	// The location of the output directory where the generated letter will be
+	// deposited
 	protected abstract String getOutputDir();
 
 	// The destination filename
 	protected abstract String getFilename(T letterRecord);
-	
+
 	public abstract void consumeRecord(Record r);
-	
+
 	/**
 	 * Load the template into memory
+	 * 
 	 * @throws Exception
 	 */
 	protected void loadTemplate() throws Exception {
-		URI uri = URI.create(getTemplateURI());
-		Path p = Paths.get(uri);
-		templateLines = Files.lines(p).collect(Collectors.toList());
+		if (this.template == null) {
+			URI uri = URI.create(getTemplateURI());
+			this.template = new Template(uri);
+		}
+
 	}
 
-	
 	/**
 	 * 
-	 * @param record A candidate record for letter production
+	 * @param record
+	 *            A candidate record for letter production
 	 */
 	public void addSource(T record) {
 		letterSet.add(record);
@@ -63,12 +66,11 @@ public abstract class LetterSource<T extends Record> {
 
 	/**
 	 * Using the provided records, produce the associated letters
+	 * 
 	 * @throws Exception
 	 */
 	public void generateLetters() throws Exception {
-		if (this.templateLines == null) {
-			this.loadTemplate();
-		}
+		this.loadTemplate();
 
 		for (T r : letterSet) {
 			List<String> out = injectValues(r);
@@ -85,10 +87,12 @@ public abstract class LetterSource<T extends Record> {
 		this.letterSet.clear();
 		return this;
 	}
-	
+
 	/**
 	 * Grunt work for performing the field matching and replacement
-	 * @param r The record used as source for field replacement.
+	 * 
+	 * @param r
+	 *            The record used as source for field replacement.
 	 * @return The 'in-memory' lines of replaced lines
 	 */
 	private List<String> injectValues(Record r) {
@@ -97,20 +101,16 @@ public abstract class LetterSource<T extends Record> {
 		List<? extends Record> groupActive = null;
 		int groupIndex = 0;
 
-		for (Iterator<String> lineIt = this.templateLines.iterator(); lineIt.hasNext();) {
+		int lineNumber = 0;
+		for (Iterator<String> lineIt = this.template.templateLines.iterator(); lineIt.hasNext();) {
 			String line = lineIt.next();
-			Matcher m = FIELD_REG_EX.matcher(line);
-
-			List<String> repFields = new ArrayList<>();
-
-			while (m.find()) {
-				repFields.add(m.group(2));
-			}
+			
+			List<FieldPos> repFields = this.template.lineTags.get(lineNumber);
 
 			// Check for group
 			CompositeTag ct = null;
 			if (repFields.size() == 1) {
-				String ns = repFields.get(0).replace("<<", "").replace(">>", "");
+				String ns = repFields.get(0).field.replace("<<", "").replace(">>", "");
 				ct = identifyPreTag(ns);
 			}
 
@@ -147,13 +147,16 @@ public abstract class LetterSource<T extends Record> {
 			} else {
 				outLines.add(line);
 			}
+			lineNumber++;
 		}
 		return outLines;
 	}
 
 	/**
 	 * Identify any system tags in the form <<tag.item>>
-	 * @param tag The full stringy tag
+	 * 
+	 * @param tag
+	 *            The full stringy tag
 	 * @return The CompositeTag object containing the detail.
 	 */
 	private static CompositeTag identifyPreTag(final String tag) {
@@ -170,37 +173,119 @@ public abstract class LetterSource<T extends Record> {
 
 	/**
 	 * 
-	 * @param line The line from the templated
-	 * @param repFields The candidate fields for replacement
-	 * @param repVals The candidate values for replacement
+	 * @param line
+	 *            The line from the templated
+	 * @param repFields
+	 *            The candidate fields for replacement
+	 * @param repVals
+	 *            The candidate values for replacement
 	 * @return
 	 */
-	private static String constructLine(String line, List<String> repFields, Map<String, Field> repVals) {
-		for (String s : repFields) {
-			Field curField = null;
-
-			String ns = s.replace("<<", "").replace(">>", "");
-
-			if (ns.startsWith("system.")) {
-				if (ns.substring(7).equals("today")) {
-					line = line.replace(s, new SimpleDateFormat("dd/MM/yyyy").format(new Date()));
-				}
-			} else {
-				curField = repVals.get(ns);
-
-				if (curField != null) {
-					String repVal = curField.getValue();
-					line = line.replace(s, repVal);
-				}
-			}
+	private static String constructLine(String line, final List<FieldPos> repFields, final Map<String, Field> repVals) {
+		List<FieldPos> fixedFields = repFields.stream().filter(fp -> fp.limit != null && fp.limit > 0).collect(Collectors.toList());
+		
+		for (FieldPos fp:fixedFields) {
+			String val = getFieldValue(fp.field, repVals);
+			val = String.format("%-" + fp.limit + "." + fp.limit + "s",val);
+			line = line.substring(0, fp.start) + val + line.substring(fp.start + fp.limit);
 		}
 
+		List<FieldPos> varFields = repFields.stream().filter(fp -> fp.limit == null).collect(Collectors.toList());
+
+		for (FieldPos fp:varFields) {
+			String val = getFieldValue(fp.field, repVals);
+			line = line.replace(fp.field, val);
+		}
+		
 		return line;
+	}
+	
+	private static String getFieldValue(String repField, Map<String, Field> repVals) {
+		String val = null;
+		String ns = repField.replace("<<", "").replace(">>", "");
+
+		if (ns.startsWith("system.")) {
+			if (ns.substring(7).equals("today")) {
+				val = new SimpleDateFormat("dd/MM/yyyy").format(new Date());
+			}
+		} else {
+			Field curField = repVals.get(ns);
+
+			if (curField != null) {
+				val = curField.getValue();
+			}
+		}		
+		return val;
+	}
+
+	public static void main(String[] args) {
+		FieldPos fp = new FieldPos("<<gavlad>>", 10);
+		fp.limit = 10;
+		String val = "12";
+		val = String.format("%-" + fp.limit + "." + fp.limit + "s",val);
+		String line = "This is a <<gavlad>> replacement if possible";
+		System.out.println(line);
+		line = line.substring(0, fp.start) + val + line.substring(fp.start + fp.limit);
+		System.out.println(line);
+		System.out.println("123456789012345678901234567890123456789012345678901234567890");
+
+	}
+	
+	public static class Template {
+		private List<String> templateLines;
+		private List<List<FieldPos>> lineTags;
+
+		public Template(URI uri) throws Exception {
+			Path p = Paths.get(uri);
+			this.templateLines = Files.lines(p).collect(Collectors.toList());
+			this.lineTags = new ArrayList<>(this.templateLines.size());
+			this.extractFields();
+		}
+
+		public void extractFields() {
+
+			for (String line : this.templateLines) {
+				boolean active = line.length() > 5;
+				int pos = 0;
+				List<FieldPos> fpl = new ArrayList<>();
+				while (active) {
+					pos = line.indexOf("<<", pos);
+					int start = pos;
+					if (pos < 0 || pos > line.length() - 5) {
+						active = false;
+					} else {
+						pos += 2;
+						pos = line.indexOf(">>", pos);
+
+						if (pos < 0) {
+							active = false;
+						} else {
+							pos += 2;
+							FieldPos fp = new FieldPos(line.substring(start, pos), start);
+							boolean done = false;
+							for (; (pos < line.length()) && !done; pos++) {
+								if (line.charAt(pos) != ' ')
+									done = true;
+							}
+							
+							pos--;
+							
+							if (line.indexOf("<<", pos) == pos) {
+								fp.limit = pos - start - 2;
+							}
+							fpl.add(fp);
+						}
+					}
+				}
+				this.lineTags.add(fpl);
+			}
+		}
 
 	}
 
 	/**
 	 * Holder class for fields containing a 'command'
+	 * 
 	 * @author regen
 	 *
 	 */
@@ -210,6 +295,20 @@ public abstract class LetterSource<T extends Record> {
 
 		public String toString() {
 			return this.command + "." + this.data;
+		}
+	}
+
+	/**
+	 * 
+	 */
+	private static class FieldPos {
+		private String field;
+		private int start;
+		private Integer limit = null;
+
+		public FieldPos(final String field, final int start) {
+			this.field = field;
+			this.start = start;
 		}
 	}
 
