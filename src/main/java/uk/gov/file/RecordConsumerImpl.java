@@ -5,6 +5,11 @@ import java.util.List;
 
 import uk.gov.records.Record;
 
+/**
+ * Class to consume successfully validated records and relay to the Source Manager
+ * @author regen
+ *
+ */
 public class RecordConsumerImpl implements RecordConsumer {
 
 	private static RecordConsumer _recordListener = new RecordConsumerImpl();
@@ -29,6 +34,10 @@ public class RecordConsumerImpl implements RecordConsumer {
 		this.problems.add(problem);
 	}
 
+	/**
+	 * Determine if any problems have been found. If so, report them; otherwise, continue
+	 * to deliver records to SourceManager
+	 */
 	@Override
 	public boolean processResults() {
 		boolean success = true;

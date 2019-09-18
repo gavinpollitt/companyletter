@@ -2,6 +2,12 @@ package uk.gov.file;
 
 import uk.gov.records.Record2;
 
+/** 
+ * Listener class to intercept record type 2 and perform the appropriate processing
+ * depending on the event received.
+ * @author regen
+ *
+ */
 public class DiscountListener implements LineListener {
 
 	private RecordConsumer recordListener;

@@ -3,6 +3,12 @@ package uk.gov.file;
 import uk.gov.records.Record3;
 import uk.gov.records.Record3.Record3A;
 
+/** 
+ * Listener class to intercept record type 3 and perform the appropriate processing
+ * depending on the event received.
+ * @author regen
+ *
+ */
 public class InvoiceListener implements LineListener {
 
 	private boolean invActive = false;

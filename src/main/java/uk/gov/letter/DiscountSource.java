@@ -41,6 +41,9 @@ public class DiscountSource extends LetterSource<Record2> {
 		return OUTPUT_FN + "_" + letterRecord.getFields().get("companyName").getValue() + ".txt";
 	}
 
+	/**
+	 * Convenience method to correctly cast record to the type supported by this class.
+	 */
 	@Override
 	public void consumeRecord(Record r) {
 		if (r.getClass() == Record2.class) {

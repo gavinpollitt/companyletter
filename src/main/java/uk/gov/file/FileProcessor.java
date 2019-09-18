@@ -38,7 +38,7 @@ public class FileProcessor {
 	private final List<LineListener> lineListeners;
 
 	/**
-	 * Start the ball rolling
+	 * Start the ball rolling by injecting the various event listeners/providers
 	 * 
 	 * @param args
 	 * @throws Exception
@@ -62,6 +62,10 @@ public class FileProcessor {
 		fp.purge();
 	}
 
+	/**
+	 * 
+	 * @param listeners The set of Line Listeners that will be awaiting a successfully read line
+	 */
 	public FileProcessor(final List<LineListener> listeners) {
 		try {
 			this.inputPath = Paths.get(URI.create(INPUT_DIR));

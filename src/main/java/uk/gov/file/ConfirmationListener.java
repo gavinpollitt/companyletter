@@ -5,6 +5,12 @@ import uk.gov.records.Record3;
 import uk.gov.records.Record1.Record1A;
 import uk.gov.records.Record3.Record3A;
 
+/** 
+ * Listener class to intercept record type 1 and perform the appropriate processing
+ * depending on the event received.
+ * @author regen
+ *
+ */
 public class ConfirmationListener implements LineListener {
 
 	private boolean confActive = false;

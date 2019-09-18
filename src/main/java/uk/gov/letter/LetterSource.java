@@ -16,7 +16,7 @@ import uk.gov.records.Record;
 import uk.gov.records.RecordUtils.Field;
 
 /**
- * Superclass for the different letter types providing core fnctionality and
+ * Superclass for the different letter types providing core functionality and
  * expectations of the subclasses
  * 
  * @author regen
@@ -182,6 +182,7 @@ public abstract class LetterSource<T extends Record> {
 	 * @return
 	 */
 	private static String constructLine(String line, final List<FieldPos> repFields, final Map<String, Field> repVals) {
+		//Resolve fields which will not shift the length of the line
 		List<FieldPos> fixedFields = repFields.stream().filter(fp -> fp.limit != null && fp.limit > 0).collect(Collectors.toList());
 		
 		for (FieldPos fp:fixedFields) {
@@ -190,6 +191,7 @@ public abstract class LetterSource<T extends Record> {
 			line = line.substring(0, fp.start) + val + line.substring(fp.start + fp.limit);
 		}
 
+		// Resolve fields that should just be a replacement of the tag
 		List<FieldPos> varFields = repFields.stream().filter(fp -> fp.limit == null).collect(Collectors.toList());
 
 		for (FieldPos fp:varFields) {
@@ -200,6 +202,12 @@ public abstract class LetterSource<T extends Record> {
 		return line;
 	}
 	
+	/**
+	 * Parse the field between the << >>
+	 * @param repField
+	 * @param repVals
+	 * @return The value of the field
+	 */
 	private static String getFieldValue(String repField, Map<String, Field> repVals) {
 		String val = null;
 		String ns = repField.replace("<<", "").replace(">>", "");
@@ -218,19 +226,11 @@ public abstract class LetterSource<T extends Record> {
 		return val;
 	}
 
-	public static void main(String[] args) {
-		FieldPos fp = new FieldPos("<<gavlad>>", 10);
-		fp.limit = 10;
-		String val = "12";
-		val = String.format("%-" + fp.limit + "." + fp.limit + "s",val);
-		String line = "This is a <<gavlad>> replacement if possible";
-		System.out.println(line);
-		line = line.substring(0, fp.start) + val + line.substring(fp.start + fp.limit);
-		System.out.println(line);
-		System.out.println("123456789012345678901234567890123456789012345678901234567890");
-
-	}
-	
+	/**
+	 * Class to hold the contents and tags of a template document to negate the need for repeated parsing.
+	 * @author regen
+	 *
+	 */
 	public static class Template {
 		private List<String> templateLines;
 		private List<List<FieldPos>> lineTags;
@@ -299,7 +299,7 @@ public abstract class LetterSource<T extends Record> {
 	}
 
 	/**
-	 * 
+	 * Holder class for a field tag
 	 */
 	private static class FieldPos {
 		private String field;
